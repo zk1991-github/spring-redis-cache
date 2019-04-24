@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
@@ -23,7 +23,6 @@ import java.time.Duration;
  * @Author zk
  * @Date 2019/4/18 22:16
  */
-@Component
 @Configuration
 @ConfigurationProperties(prefix = "spring.cache.redis")
 public class RedisCacheConfig {
@@ -52,14 +51,22 @@ public class RedisCacheConfig {
         ParserConfig.getGlobalInstance().addAccept("com.github.zk.springbootrediscache.entity.");
 
         //配置序列化，解决存储至Redis的乱码问题
-        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig() //初始化RedisCache配置
-                .entryTtl(timeToLive) //设置存活时间
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer)) //设置key值序列化器
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(fastJsonRedisSerializer)) //设置value值序列化器
-                .disableCachingNullValues(); //不存储null值
+        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+                //设置存活时间
+                .entryTtl(timeToLive)
+                //设置key值序列化器
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer))
+                //设置value值序列化器
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(fastJsonRedisSerializer))
+                //不存储null值
+                .disableCachingNullValues();
 
-        //构建RedisCache管理对象
-        RedisCacheManager redisCacheManager = RedisCacheManager.builder(connectionFactory)
+        //RedisCacheManager默认是无锁的，用于读写二进制值的RedisCacheWriter。
+        // 无锁缓存可提高吞吐量。
+        // 缺少锁定可能导致putIfAbsent和clean方法的非原子命令重叠，因为这些方法需要向Redis发送多条命令。
+        // 锁对应程序通过设置显式锁定的key并检查是否存在该key来防止命令重叠，这会导致额外的请求和潜在的命令等待时间
+        //构建RedisCache管理对象,采用有锁方式
+        RedisCacheManager redisCacheManager = RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
                 .cacheDefaults(redisCacheConfiguration)
                 .build();
         return redisCacheManager;
