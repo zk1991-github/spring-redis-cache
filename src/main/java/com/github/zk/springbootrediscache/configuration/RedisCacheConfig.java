@@ -18,6 +18,10 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @Author zk
@@ -53,13 +57,22 @@ public class RedisCacheConfig {
         //配置序列化，解决存储至Redis的乱码问题
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 //设置存活时间
-                .entryTtl(timeToLive)
+//                .entryTtl(timeToLive)
                 //设置key值序列化器
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer))
                 //设置value值序列化器
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(fastJsonRedisSerializer))
                 //不存储null值
                 .disableCachingNullValues();
+        //定义缓存类型，cache-map/cache，如果需要增加新类型可通过add添加
+        Set<String> cacheNames = new HashSet<String>(1);
+        cacheNames.add("cache-temp");
+        cacheNames.add("cache");
+
+        //定义不同缓存类型的失效时间，key值与上面cacheNames中定义的需要一致，才会生效
+        Map<String,RedisCacheConfiguration> configMap = new HashMap<String,RedisCacheConfiguration>(1);
+        configMap.put("cache-temp",redisCacheConfiguration.entryTtl(Duration.ofSeconds(10L)));
+        configMap.put("cache",redisCacheConfiguration);
 
         //RedisCacheManager默认是无锁的，用于读写二进制值的RedisCacheWriter。
         // 无锁缓存可提高吞吐量。
@@ -67,7 +80,11 @@ public class RedisCacheConfig {
         // 锁对应程序通过设置显式锁定的key并检查是否存在该key来防止命令重叠，这会导致额外的请求和潜在的命令等待时间
         //构建RedisCache管理对象,采用有锁方式
         RedisCacheManager redisCacheManager = RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(connectionFactory))
-                .cacheDefaults(redisCacheConfiguration)
+                //先初始化缓存名称，再加载缓存配置
+                .initialCacheNames(cacheNames)
+                //加载缓存配置
+                .withInitialCacheConfigurations(configMap)
+                //构建RedisCacheManage对象
                 .build();
         return redisCacheManager;
     }
