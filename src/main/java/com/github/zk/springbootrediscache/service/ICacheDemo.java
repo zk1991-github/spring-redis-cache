@@ -9,4 +9,6 @@ import com.github.zk.springbootrediscache.entity.User;
 public interface ICacheDemo {
 
     User selectUserById(int id);
+
+    User selectUserByName(String name);
 }

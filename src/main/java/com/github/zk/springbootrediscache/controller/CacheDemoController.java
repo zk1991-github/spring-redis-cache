@@ -21,4 +21,10 @@ public class CacheDemoController {
         User user = iCacheDemo.selectUserById(id);
         return user;
     }
+
+    @RequestMapping("/selectUserByName")
+    public User selectUserByName(@RequestParam String name) {
+        User user = iCacheDemo.selectUserByName(name);
+        return user;
+    }
 }

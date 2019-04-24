@@ -12,12 +12,23 @@ import org.springframework.stereotype.Service;
 @Service
 public class CacheDemoImpl implements ICacheDemo {
     @Override
-    @Cacheable(cacheNames = "selectUserById" , key = "'id=['+ #id +']'")
+    @Cacheable(cacheNames = "cache-temp" , key = "'id=['+ #id +']'")
     public User selectUserById(int id) {
-        System.out.println("未使用缓存");
+        System.out.println("selectUserById");
         User user = new User();
         user.setId(id);
         user.setName("张三" + id);
+        user.setTime(System.currentTimeMillis());
+        return user;
+    }
+
+    @Override
+    @Cacheable(cacheNames = "cache" , key = "'[' + #name + ']'")
+    public User selectUserByName(String name) {
+        System.out.println("selectUserByName");
+        User user = new User();
+        user.setId(1);
+        user.setName(name);
         user.setTime(System.currentTimeMillis());
         return user;
     }
