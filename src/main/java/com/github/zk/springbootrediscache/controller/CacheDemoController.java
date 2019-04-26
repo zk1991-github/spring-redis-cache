@@ -20,6 +20,12 @@ public class CacheDemoController {
         return user;
     }
 
+    @RequestMapping("/selectUserByKeyword")
+    public User selectUserByKeyword(@RequestParam int id , String name) {
+        User user = iCacheDemo.selectUserByKeyword(id , name);
+        return user;
+    }
+
     @RequestMapping("/selectUserByName")
     public User selectUserByName(@RequestParam String name) {
         User user = iCacheDemo.selectUserByName(name);

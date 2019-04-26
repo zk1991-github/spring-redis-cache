@@ -6,6 +6,8 @@ import com.alibaba.fastjson.support.config.FastJsonConfig;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -18,10 +20,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @Author zk
@@ -29,11 +28,27 @@ import java.util.Set;
  */
 @Configuration
 @ConfigurationProperties(prefix = "spring.cache.redis")
-public class RedisCacheConfig {
+public class RedisCacheConfig extends CachingConfigurerSupport {
     private Duration timeToLive = Duration.ZERO;
 
     public void setTimeToLive(Duration timeToLive) {
         this.timeToLive = timeToLive;
+    }
+
+    @Bean
+    @Override
+    public KeyGenerator keyGenerator() {
+        return (object,method,objects)->{
+            StringBuffer stringBuffer = new StringBuffer();
+            stringBuffer.append(object.getClass().getSimpleName());
+            stringBuffer.append(":");
+            stringBuffer.append(method.getName());
+            for (Object o : objects) {
+                stringBuffer.append(":");
+                stringBuffer.append(o.toString());
+            }
+            return stringBuffer.toString();
+        };
     }
 
     @Bean
@@ -65,13 +80,13 @@ public class RedisCacheConfig {
                 //不存储null值
                 .disableCachingNullValues();
         //定义缓存类型，cache-map/cache，如果需要增加新类型可通过add添加
-        Set<String> cacheNames = new HashSet<String>(1);
+        Set<String> cacheNames = new HashSet<String>(2);
         cacheNames.add("cache-temp");
         cacheNames.add("cache");
 
         //定义不同缓存类型的失效时间，key值与上面cacheNames中定义的需要一致，才会生效
-        Map<String,RedisCacheConfiguration> configMap = new HashMap<String,RedisCacheConfiguration>(1);
-        configMap.put("cache-temp",redisCacheConfiguration.entryTtl(Duration.ofSeconds(10L)));
+        Map<String,RedisCacheConfiguration> configMap = new HashMap<String,RedisCacheConfiguration>(2);
+        configMap.put("cache-temp",redisCacheConfiguration.entryTtl(timeToLive));
         configMap.put("cache",redisCacheConfiguration);
 
         //RedisCacheManager默认是无锁的，用于读写二进制值的RedisCacheWriter。

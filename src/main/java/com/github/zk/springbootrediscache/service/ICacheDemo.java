@@ -10,6 +10,8 @@ public interface ICacheDemo {
 
     User selectUserById(int id);
 
+    User selectUserByKeyword(int id , String name);
+
     User selectUserByName(String name);
 
     User updateUserById(int id);

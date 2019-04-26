@@ -29,6 +29,17 @@ public class CacheDemoImpl implements ICacheDemo {
     }
 
     @Override
+    @Cacheable(cacheNames = "cache-temp")
+    public User selectUserByKeyword(int id, String name) {
+        System.out.println("selectUserByKeyword");
+        User user = new User();
+        user.setId(id);
+        user.setName(name);
+        user.setTime(System.currentTimeMillis());
+        return user;
+    }
+
+    @Override
     @Cacheable(cacheNames = "cache" , key = "'[' + #name + ']'")
     public User selectUserByName(String name) {
         System.out.println("selectUserByName");
