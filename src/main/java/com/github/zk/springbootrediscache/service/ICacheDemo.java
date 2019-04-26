@@ -11,4 +11,8 @@ public interface ICacheDemo {
     User selectUserById(int id);
 
     User selectUserByName(String name);
+
+    User updateUserById(int id);
+
+    void deleteUser();
 }

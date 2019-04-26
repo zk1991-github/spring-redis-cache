@@ -3,9 +3,7 @@ package com.github.zk.springbootrediscache.controller;
 import com.github.zk.springbootrediscache.entity.User;
 import com.github.zk.springbootrediscache.service.ICacheDemo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @Author zk
@@ -26,5 +24,16 @@ public class CacheDemoController {
     public User selectUserByName(@RequestParam String name) {
         User user = iCacheDemo.selectUserByName(name);
         return user;
+    }
+
+    @RequestMapping("/updateUserById")
+    public User updateUserById(@RequestParam int id) {
+        User user = iCacheDemo.updateUserById(id);
+        return user;
+    }
+
+    @RequestMapping("/deleteUser")
+    public void deleteUser(@RequestParam int id) {
+        iCacheDemo.deleteUser();
     }
 }
