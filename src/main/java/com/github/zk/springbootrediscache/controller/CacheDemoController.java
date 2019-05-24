@@ -14,9 +14,20 @@ import org.springframework.web.bind.annotation.*;
 public class CacheDemoController {
     @Autowired
     private ICacheDemo iCacheDemo;
+
+    @RequestMapping("/selectAllUser")
+    public User selectAllUser() {
+        return iCacheDemo.selectAllUser();
+    }
+
     @RequestMapping("/selectUserById")
-    public User selectUserById(@RequestParam int id) {
-        User user = iCacheDemo.selectUserById(id);
+    public User selectUserById(@RequestParam int id,int flag) {
+        User user = null;
+        if (flag == 0) {
+            user = iCacheDemo.selectUserById(id);
+        } else if (flag == 1){
+            user = iCacheDemo.selectUserById2(id);
+        }
         return user;
     }
 
@@ -38,8 +49,19 @@ public class CacheDemoController {
         return user;
     }
 
-    @RequestMapping("/deleteUser")
-    public void deleteUser(@RequestParam int id) {
-        iCacheDemo.deleteUser();
+    @RequestMapping("/delUserById")
+    public void delUserById(@RequestParam int id) {
+        iCacheDemo.delUserById(id);
     }
+
+    @RequestMapping("/delAllCacheTemp")
+    public void delAllCacheTemp() {
+        iCacheDemo.delAllCacheTemp();
+    }
+
+    @RequestMapping("/delUser")
+    public void delUser(@RequestParam int... id) {
+        iCacheDemo.delUser(id);
+    }
+
 }

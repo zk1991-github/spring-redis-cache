@@ -8,7 +8,11 @@ import com.github.zk.springbootrediscache.entity.User;
  */
 public interface ICacheDemo {
 
+    User selectAllUser();
+
     User selectUserById(int id);
+
+    User selectUserById2(int id);
 
     User selectUserByKeyword(int id , String name);
 
@@ -16,5 +20,9 @@ public interface ICacheDemo {
 
     User updateUserById(int id);
 
-    void deleteUser();
+    void delUserById(int id);
+
+    void delAllCacheTemp();
+
+    void delUser(int... id);
 }
