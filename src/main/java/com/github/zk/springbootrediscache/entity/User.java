@@ -9,6 +9,12 @@ public class User {
     private String name;
     private Long time;
 
+    public User(int id, String name, Long time) {
+        this.id = id;
+        this.name = name;
+        this.time = time;
+    }
+
     public int getId() {
         return id;
     }
