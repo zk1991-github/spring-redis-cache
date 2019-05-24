@@ -7,7 +7,9 @@ import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -43,10 +45,8 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
             stringBuffer.append(object.getClass().getSimpleName());
             stringBuffer.append(":");
             stringBuffer.append(method.getName());
-            for (Object o : objects) {
-                stringBuffer.append(":");
-                stringBuffer.append(o.toString());
-            }
+            stringBuffer.append(":");
+            stringBuffer.append(Arrays.deepHashCode(objects));
             return stringBuffer.toString();
         };
     }
@@ -99,8 +99,17 @@ public class RedisCacheConfig extends CachingConfigurerSupport {
                 .initialCacheNames(cacheNames)
                 //加载缓存配置
                 .withInitialCacheConfigurations(configMap)
+                //允许设置初始化之外的cacheName
+                .cacheDefaults(redisCacheConfiguration)
                 //构建RedisCacheManage对象
                 .build();
         return redisCacheManager;
+    }
+
+    @Bean
+    public CacheManager cacheManagerJVM() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(Collections.singletonList(new ConcurrentMapCache("models")));
+        return cacheManager;
     }
 }
